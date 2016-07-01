@@ -61,12 +61,6 @@
     if (![NSStringFromClass([obj class]) isEqualToString:className] && class_getInstanceSize([obj class]) == class_getInstanceSize(aClass)) {
         object_setClass(obj, aClass);
     }
-    else {
-        NSLog(@"===== %@", NSStringFromClass([obj class]));
-        NSLog(@"===== %@", className);
-        NSLog(@"===== %zu", class_getInstanceSize([obj class]));
-        NSLog(@"===== %zu", class_getInstanceSize(aClass));
-    }
     
     IMP blockIMP = imp_implementationWithBlock(block);
     Method targetMethod = class_getInstanceMethod(object_getClass(obj), selector);
