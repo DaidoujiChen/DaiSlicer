@@ -15,8 +15,6 @@
 		1C3095E81D058ED900E4CD05 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1C3095E61D058ED900E4CD05 /* LaunchScreen.storyboard */; };
 		1C3095F31D058ED900E4CD05 /* DaiSlicerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C3095F21D058ED900E4CD05 /* DaiSlicerTests.m */; };
 		1C3096001D058F2100E4CD05 /* DaiSlicer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C3095FF1D058F2100E4CD05 /* DaiSlicer.m */; };
-		1C3096031D058F7500E4CD05 /* TestObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C3096021D058F7500E4CD05 /* TestObject.m */; };
-		1C41CC371D261B8200AB7EAF /* RuntimeHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C41CC361D261B8200AB7EAF /* RuntimeHelper.m */; };
 		1C41CC381D2620E700AB7EAF /* RuntimeHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C41CC361D261B8200AB7EAF /* RuntimeHelper.m */; };
 		1C41CC391D263D4500AB7EAF /* TestObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C3096021D058F7500E4CD05 /* TestObject.m */; };
 /* End PBXBuildFile section */
@@ -249,8 +247,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1C3096031D058F7500E4CD05 /* TestObject.m in Sources */,
-				1C41CC371D261B8200AB7EAF /* RuntimeHelper.m in Sources */,
 				1C3095F31D058ED900E4CD05 /* DaiSlicerTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

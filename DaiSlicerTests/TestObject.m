@@ -32,4 +32,8 @@
     return block(@"hello");
 }
 
+- (NSInteger)addOne:(NSInteger)value {
+    return value + 1;
+}
+
 @end

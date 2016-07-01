@@ -16,5 +16,6 @@
 - (NSString *)repeat:(NSString *)string;
 - (NSString *)merge:(NSString *)leftString with:(NSString *)rightString;
 - (NSString *)block:(NSString *(^)(NSString *string))block;
+- (NSInteger)addOne:(NSInteger)value;
 
 @end
