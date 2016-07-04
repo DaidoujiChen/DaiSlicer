@@ -80,15 +80,11 @@
 #pragma mark - Class Method
 
 + (void)slice:(id)obj method:(SEL)selector byBlock:(id)block {
-    [self slice:obj method:selector byBlock:block withIdentifier:nil];
-}
-
-+ (void)slice:(id)obj method:(SEL)selector byBlock:(id)block withIdentifier:(NSString *)identifier {
     
     // 找出我們要建立的 class 名稱
     Class objClass = object_getClass(obj);
     NSString *className = [NSString stringWithFormat:@"%s", class_getName(objClass)];
-    NSString *prefix = [NSString stringWithFormat:@"Dai_%@%@", object_isClass(obj) ? @"Class_" : @"Instance_", identifier ? [NSString stringWithFormat:@"%@_", identifier] : @""];
+    NSString *prefix = [NSString stringWithFormat:@"Dai_%p_", obj];
     if (![className containsString:prefix]) {
         className = [NSString stringWithFormat:@"%@%s", prefix, class_getName(objClass)];
     }
@@ -111,7 +107,7 @@
         
         // Instance
         [self forInstanceMethod:obj method:selector byBlock:block className:className];
-    }
+    };
 }
 
 @end

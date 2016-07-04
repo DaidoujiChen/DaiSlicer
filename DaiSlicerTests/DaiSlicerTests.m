@@ -35,13 +35,14 @@
         NSLog(@"repeat output = %@", output);
         return output;
     });
+    NSAssert([[testObject repeat:@"daidouji"] isEqualToString:@"daidoujidaidouji"], @"不一樣 O口O\"");
+    
     slice(testObject, @selector(merge:with:), ^NSString *(NSObject *obj, NSString *leftString, NSString *rightString) {
         NSLog(@"merge input = %@, %@", leftString, rightString);
         NSString *output = pass(obj, @selector(merge:with:), leftString, rightString);
         NSLog(@"merge output = %@", output);
         return output;
     });
-    NSAssert([[testObject repeat:@"daidouji"] isEqualToString:@"daidoujidaidouji"], @"不一樣 O口O\"");
     NSAssert([[testObject merge:@"daidouji" with:@"chen"] isEqualToString:@"daidoujichen"], @"不一樣 O口O\"");
 }
 
@@ -49,33 +50,27 @@
     TestObject *testObject = [TestObject new];
     
     slice(testObject, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
-        NSLog(@"11111");
-        NSLog(@"input = %@", input);
         NSString *output = pass(obj, @selector(repeat:), input);
-        NSLog(@"output = %@", output);
         return output;
     });
     NSAssert([[testObject repeat:@"daidouji"] isEqualToString:@"daidoujidaidouji"], @"不一樣 O口O\" 11");
     
     slice(testObject, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
-        NSLog(@"22222");
-        NSLog(@"===== %@", obj);
         return @"replace";
     });
-    
     NSAssert([[testObject repeat:@"daidouji"] isEqualToString:@"replace"], @"不一樣 O口O\" 22");
 }
 
 - (void)testIndependent {
     TestObject *testObjectA = [TestObject new];
-    sliceByIdentifier(testObjectA, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
-        return @"testObjectA";
-    }, @"forA");
-    
     TestObject *testObjectB = [TestObject new];
-    sliceByIdentifier(testObjectB, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    
+    slice(testObjectA, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+        return @"testObjectA";
+    });
+    slice(testObjectB, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
         return @"testObjectB";
-    }, @"forB");
+    });
     
     NSAssert([[testObjectA repeat:@"daidouji"] isEqualToString:@"testObjectA"], @"不一樣 O口O\"");
     NSAssert([[testObjectB repeat:@"daidouji"] isEqualToString:@"testObjectB"], @"不一樣 O口O\"");
@@ -83,20 +78,21 @@
 
 - (void)testReplaceIndependent {
     TestObject *testObjectA = [TestObject new];
-    sliceByIdentifier(testObjectA, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
-        return @"testObjectA";
-    }, @"forA");
-    sliceByIdentifier(testObjectA, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
-        return @"testObjectAA";
-    }, @"forA");
-    
     TestObject *testObjectB = [TestObject new];
-    sliceByIdentifier(testObjectB, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    
+    slice(testObjectA, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+        return @"testObjectA";
+    });
+    slice(testObjectA, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+        return @"testObjectAA";
+    });
+    
+    slice(testObjectB, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
         return @"testObjectB";
-    }, @"forB");
-    sliceByIdentifier(testObjectB, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    });
+    slice(testObjectB, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
         return @"testObjectBB";
-    }, @"forB");
+    });
     
     NSAssert([[testObjectA repeat:@"daidouji"] isEqualToString:@"testObjectAA"], @"不一樣 O口O\"");
     NSAssert([[testObjectB repeat:@"daidouji"] isEqualToString:@"testObjectBB"], @"不一樣 O口O\"");
@@ -133,8 +129,12 @@
         IMP imp = usingIMP(obj, @selector(addOne:));
         return ((NSInteger (*)(id, SEL, NSInteger))imp)(obj, @selector(addOne:), value);
     });
-    
     NSAssert([testObject addOne:5] == 6, @"不一樣 O口O\"");
+    
+    slice(testObject, @selector(addOne:), ^NSInteger(NSObject *obj, NSInteger value) {
+        return 4;
+    });
+    NSAssert([testObject addOne:5] == 4, @"不一樣 O口O\"");
 }
 
 @end

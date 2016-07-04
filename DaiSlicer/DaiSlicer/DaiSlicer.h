@@ -13,10 +13,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
 
-#define slice(target, selector, block) sliceByIdentifier(target, selector, block, nil);
-
-#define sliceByIdentifier(target, selector, block, identifier) \
-[DaiSlicer slice:target method:selector byBlock:block withIdentifier:identifier];
+#define slice(target, selector, block) [DaiSlicer slice:target method:selector byBlock:block];
 
 // return 值是 void 或是 id 系列, 可以直接用 pass 過去
 #define pass(target, selector, args...) \
@@ -43,6 +40,5 @@
 @interface DaiSlicer : NSObject
 
 + (void)slice:(id)obj method:(SEL)selector byBlock:(id)block;
-+ (void)slice:(id)obj method:(SEL)selector byBlock:(id)block withIdentifier:(NSString *)identifier;
 
 @end
