@@ -20,7 +20,7 @@
     TestObject *testObject = [TestObject new];
     slice(testObject, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
         NSLog(@"input = %@, %@", input, obj);
-        NSString *output = pass(obj, @selector(repeat:), input);
+        NSString *output = invoke(NSString *(*)(id, SEL, id), obj, @selector(repeat:), input);
         NSLog(@"output = %@", output);
         return output;
     });
@@ -31,7 +31,7 @@
     TestObject *testObject = [TestObject new];
     slice(testObject, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
         NSLog(@"repeat input = %@", input);
-        NSString *output = pass(obj, @selector(repeat:), input);
+        NSString *output = invoke(NSString *(*)(id, SEL, id), obj, @selector(repeat:), input);
         NSLog(@"repeat output = %@", output);
         return output;
     });
@@ -39,7 +39,7 @@
     
     slice(testObject, @selector(merge:with:), ^NSString *(NSObject *obj, NSString *leftString, NSString *rightString) {
         NSLog(@"merge input = %@, %@", leftString, rightString);
-        NSString *output = pass(obj, @selector(merge:with:), leftString, rightString);
+        NSString *output = invoke(NSString *(*)(id, SEL, id, id), obj, @selector(merge:with:), leftString, rightString);
         NSLog(@"merge output = %@", output);
         return output;
     });
@@ -50,7 +50,7 @@
     TestObject *testObject = [TestObject new];
     
     slice(testObject, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
-        NSString *output = pass(obj, @selector(repeat:), input);
+        NSString *output = invoke(NSString *(*)(id, SEL, id), obj, @selector(repeat:), input);
         return output;
     });
     NSAssert([[testObject repeat:@"daidouji"] isEqualToString:@"daidoujidaidouji"], @"不一樣 O口O\" 11");
@@ -100,7 +100,7 @@
 
 - (void)testClassMethod {
     slice([TestObject class], @selector(testMe:), ^NSArray *(NSObject *obj, NSArray *array) {
-        return pass(obj, @selector(testMe:), @[ @"world", @"ya" ]);
+        return invoke(NSArray *(*)(id, SEL, id), obj, @selector(testMe:), @[ @"world", @"ya" ]);
     });
     NSAssert([[[TestObject slicer] testMe:@[]].firstObject isEqualToString:@"world"], @"不一樣 O口O\"");
 }
@@ -108,11 +108,12 @@
 - (void)testBlock {
     TestObject *testObject = [TestObject new];
     
-    slice(testObject, @selector(block:), ^(NSObject *obj, NSString *(^block)(NSString *string)) {
+    SEL selector = @selector(block:);
+    slice(testObject, selector, ^NSString *(NSObject *obj, NSString *(^block)(NSString *string)) {
         NSString *(^myBlock)(NSString *string) = ^NSString *(NSString *string) {
             return @"O3O";
         };
-        return pass(obj, @selector(block:), myBlock);
+        return invoke(NSString *(*)(id, SEL, id), obj, @selector(block:), myBlock);
     });
     
     NSString *result = [testObject block: ^NSString *(NSString *string) {
@@ -126,8 +127,7 @@
     TestObject *testObject = [TestObject new];
     
     slice(testObject, @selector(addOne:), ^NSInteger(NSObject *obj, NSInteger value) {
-        IMP imp = usingIMP(obj, @selector(addOne:));
-        return ((NSInteger (*)(id, SEL, NSInteger))imp)(obj, @selector(addOne:), value);
+        return invoke(NSInteger (*)(id, SEL, NSInteger), obj, @selector(addOne:), value);
     });
     NSAssert([testObject addOne:5] == 6, @"不一樣 O口O\"");
     

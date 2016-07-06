@@ -15,13 +15,9 @@
 
 #define slice(target, selector, block) [DaiSlicer slice:target method:selector byBlock:block];
 
-// return 值是 void 或是 id 系列, 可以直接用 pass 過去
-#define pass(target, selector, args...) \
-({ \
-    usingIMP(target, selector)(target, selector, ## args); \
-})
+#define invoke(types, target, selector, args...) \
+((types)usingIMP(target, selector))(target, selector, ## args)
 
-// return 直如果是 NSInteger 之類, 非 pointer 類型, 則需要手動的去調整型別
 #define usingIMP(target, selector) \
 ({ \
     Class aClass = target.superclass; \
