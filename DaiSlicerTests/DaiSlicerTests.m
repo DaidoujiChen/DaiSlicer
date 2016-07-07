@@ -18,46 +18,43 @@
 
 - (void)testSingleMethod {
     TestObject *testObject = [TestObject new];
-    slice(testObject, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
-        NSLog(@"input = %@, %@", input, obj);
-        NSString *output = invoke(NSString *(*)(id, SEL, id), obj, @selector(repeat:), input);
-        NSLog(@"output = %@", output);
+
+    slice(testObject, @selector(repeat:), sliceBlock({
+        NSString *output = invoke(NSString *(*)(id, SEL, id), input);
         return output;
-    });
+    }, NSString *, NSString *input));
+    
     NSAssert([[testObject repeat:@"daidouji"] isEqualToString:@"daidoujidaidouji"], @"不一樣 O口O\"");
 }
 
 - (void)testMultipleMethods {
     TestObject *testObject = [TestObject new];
-    slice(testObject, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
-        NSLog(@"repeat input = %@", input);
-        NSString *output = invoke(NSString *(*)(id, SEL, id), obj, @selector(repeat:), input);
-        NSLog(@"repeat output = %@", output);
+    
+    slice(testObject, @selector(repeat:), sliceBlock({
+        NSString *output = invoke(NSString *(*)(id, SEL, id), input);
         return output;
-    });
+    }, NSString *, NSString *input));
     NSAssert([[testObject repeat:@"daidouji"] isEqualToString:@"daidoujidaidouji"], @"不一樣 O口O\"");
     
-    slice(testObject, @selector(merge:with:), ^NSString *(NSObject *obj, NSString *leftString, NSString *rightString) {
-        NSLog(@"merge input = %@, %@", leftString, rightString);
-        NSString *output = invoke(NSString *(*)(id, SEL, id, id), obj, @selector(merge:with:), leftString, rightString);
-        NSLog(@"merge output = %@", output);
+    slice(testObject, @selector(merge:with:), sliceBlock({
+        NSString *output = invoke(NSString *(*)(id, SEL, id, id), leftString, rightString);
         return output;
-    });
+    }, NSString *, NSString *leftString, NSString *rightString));
     NSAssert([[testObject merge:@"daidouji" with:@"chen"] isEqualToString:@"daidoujichen"], @"不一樣 O口O\"");
 }
 
 - (void)testReplaceMethod {
     TestObject *testObject = [TestObject new];
     
-    slice(testObject, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
-        NSString *output = invoke(NSString *(*)(id, SEL, id), obj, @selector(repeat:), input);
+    slice(testObject, @selector(repeat:), sliceBlock({
+        NSString *output = invoke(NSString *(*)(id, SEL, id), input);
         return output;
-    });
+    }, NSString *, NSString *input));
     NSAssert([[testObject repeat:@"daidouji"] isEqualToString:@"daidoujidaidouji"], @"不一樣 O口O\" 11");
     
-    slice(testObject, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    slice(testObject, @selector(repeat:), sliceBlock({
         return @"replace";
-    });
+    }, NSString *, NSString *input));
     NSAssert([[testObject repeat:@"daidouji"] isEqualToString:@"replace"], @"不一樣 O口O\" 22");
 }
 
@@ -65,12 +62,12 @@
     TestObject *testObjectA = [TestObject new];
     TestObject *testObjectB = [TestObject new];
     
-    slice(testObjectA, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    slice(testObjectA, @selector(repeat:), sliceBlock({
         return @"testObjectA";
-    });
-    slice(testObjectB, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    }, NSString *, NSString *input));
+    slice(testObjectB, @selector(repeat:), sliceBlock({
         return @"testObjectB";
-    });
+    }, NSString *, NSString *input));
     
     NSAssert([[testObjectA repeat:@"daidouji"] isEqualToString:@"testObjectA"], @"不一樣 O口O\"");
     NSAssert([[testObjectB repeat:@"daidouji"] isEqualToString:@"testObjectB"], @"不一樣 O口O\"");
@@ -80,61 +77,71 @@
     TestObject *testObjectA = [TestObject new];
     TestObject *testObjectB = [TestObject new];
     
-    slice(testObjectA, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    slice(testObjectA, @selector(repeat:), sliceBlock({
         return @"testObjectA";
-    });
-    slice(testObjectA, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    }, NSString *, NSString *input));
+    slice(testObjectA, @selector(repeat:), sliceBlock({
         return @"testObjectAA";
-    });
+    }, NSString *, NSString *input));
     
-    slice(testObjectB, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    slice(testObjectB, @selector(repeat:), sliceBlock({
         return @"testObjectB";
-    });
-    slice(testObjectB, @selector(repeat:), ^NSString *(NSObject *obj, NSString *input) {
+    }, NSString *, NSString *input));
+    slice(testObjectB, @selector(repeat:), sliceBlock({
         return @"testObjectBB";
-    });
+    }, NSString *, NSString *input));
     
     NSAssert([[testObjectA repeat:@"daidouji"] isEqualToString:@"testObjectAA"], @"不一樣 O口O\"");
     NSAssert([[testObjectB repeat:@"daidouji"] isEqualToString:@"testObjectBB"], @"不一樣 O口O\"");
 }
 
 - (void)testClassMethod {
-    slice([TestObject class], @selector(testMe:), ^NSArray *(NSObject *obj, NSArray *array) {
-        return invoke(NSArray *(*)(id, SEL, id), obj, @selector(testMe:), @[ @"world", @"ya" ]);
-    });
+    slice([TestObject class], @selector(testMe:), sliceBlock({
+        return invoke(NSArray *(*)(id, SEL, id), @[ @"world", @"ya" ]);
+    }, NSArray *, NSArray *array));
     NSAssert([[[TestObject slicer] testMe:@[]].firstObject isEqualToString:@"world"], @"不一樣 O口O\"");
 }
 
 - (void)testBlock {
     TestObject *testObject = [TestObject new];
     
-    SEL selector = @selector(block:);
-    slice(testObject, selector, ^NSString *(NSObject *obj, NSString *(^block)(NSString *string)) {
+    slice(testObject, @selector(block:), sliceBlock({
         NSString *(^myBlock)(NSString *string) = ^NSString *(NSString *string) {
             return @"O3O";
         };
-        return invoke(NSString *(*)(id, SEL, id), obj, @selector(block:), myBlock);
-    });
-    
-    NSString *result = [testObject block: ^NSString *(NSString *string) {
+        return invoke(NSString *(*)(id, SEL, id), myBlock);
+    }, NSString *, NSString *(^block)(NSString *string)));
+    NSAssert([[testObject block: ^NSString *(NSString *string) {
         return [string stringByAppendingString:@"daidouji"];
-    }];
-    
-    NSAssert([result isEqualToString:@"O3O"], @"不一樣 O口O\"");
+    }] isEqualToString:@"O3O"], @"不一樣 O口O\"");
 }
 
 - (void)testNotPointer {
     TestObject *testObject = [TestObject new];
     
-    slice(testObject, @selector(addOne:), ^NSInteger(NSObject *obj, NSInteger value) {
-        return invoke(NSInteger (*)(id, SEL, NSInteger), obj, @selector(addOne:), value);
-    });
+    slice(testObject, @selector(addOne:), sliceBlock({
+        return invoke(NSInteger (*)(id, SEL, NSInteger), value);
+    }, NSInteger, NSInteger value));
     NSAssert([testObject addOne:5] == 6, @"不一樣 O口O\"");
     
-    slice(testObject, @selector(addOne:), ^NSInteger(NSObject *obj, NSInteger value) {
+    slice(testObject, @selector(addOne:), sliceBlock({
         return 4;
-    });
+    }, NSInteger, NSInteger value));
     NSAssert([testObject addOne:5] == 4, @"不一樣 O口O\"");
+}
+
+- (void)testStructReturn {
+    TestObject *testObject = [TestObject new];
+    
+    slice(testObject, @selector(squareFrame), sliceBlock({
+        return invoke(CGRect (*)(id, SEL));
+    }, CGRect));
+    NSAssert(CGRectEqualToRect([testObject squareFrame], CGRectMake(0, 0, 100, 100)), @"不一樣 O口O\"");
+    
+    slice(testObject, @selector(squareFrame), sliceBlock({
+        return CGRectMake(0, 0, 10, 10);
+    }, CGRect));
+    NSAssert(CGRectEqualToRect([testObject squareFrame], CGRectMake(0, 0, 10, 10)), @"不一樣 O口O\"");
 }
 
 @end

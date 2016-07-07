@@ -13,10 +13,21 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
 
-#define slice(target, selector, block) [DaiSlicer slice:target method:selector byBlock:block];
+#define slice(target, selector, sliceBlock) \
+({ \
+    SEL sliceSelector = selector; \
+    [DaiSlicer slice:target method:sliceSelector byBlock:sliceBlock]; \
+})
 
-#define invoke(types, target, selector, args...) \
-((types)usingIMP(target, selector))(target, selector, ## args)
+#define sliceBlock(buildYourBlock, methodReturnType, args...) \
+({ \
+    ^methodReturnType(NSObject *obj, ## args) { \
+        buildYourBlock; \
+    }; \
+})
+
+#define invoke(types, args...) \
+((types)usingIMP(obj, sliceSelector))(obj, sliceSelector, ## args);
 
 #define usingIMP(target, selector) \
 ({ \

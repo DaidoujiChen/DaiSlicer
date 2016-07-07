@@ -36,4 +36,8 @@
     return value + 1;
 }
 
+- (CGRect)squareFrame {
+    return CGRectMake(0, 0, 100, 100);
+}
+
 @end
