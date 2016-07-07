@@ -16,6 +16,7 @@
 - (NSString *)repeat:(NSString *)string;
 - (NSString *)merge:(NSString *)leftString with:(NSString *)rightString;
 - (NSString *)block:(NSString *(^)(NSString *string))block;
+- (void)asyncBlock:(void(^)(void))asyncBlock;
 - (NSInteger)addOne:(NSInteger)value;
 - (CGRect)squareFrame;
 

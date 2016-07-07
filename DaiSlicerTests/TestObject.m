@@ -32,6 +32,15 @@
     return block(@"hello");
 }
 
+- (void)asyncBlock:(void(^)(void))asyncBlock {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        [NSThread sleepForTimeInterval:2.0f];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            asyncBlock();
+        });
+    });
+}
+
 - (NSInteger)addOne:(NSInteger)value {
     return value + 1;
 }

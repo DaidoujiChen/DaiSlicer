@@ -12,6 +12,8 @@
 
 @interface DaiSlicerTests : XCTestCase
 
+@property (nonatomic, strong) XCTestExpectation *testExpectation;
+
 @end
 
 @implementation DaiSlicerTests
@@ -142,6 +144,32 @@
         return CGRectMake(0, 0, 10, 10);
     }, CGRect));
     NSAssert(CGRectEqualToRect([testObject squareFrame], CGRectMake(0, 0, 10, 10)), @"不一樣 O口O\"");
+}
+
+- (void)testAsyncBlock {
+    self.testExpectation = [self expectationWithDescription:[NSString stringWithFormat:@"Testing Async Method %s", sel_getName(_cmd)]];
+    
+    TestObject *testObject = [TestObject new];
+    
+    slice(testObject, @selector(asyncBlock:), sliceBlock({
+        void (^myAsyncBlock)(void) = ^() {
+            asyncBlock();
+        };
+        invoke(void (*)(id, SEL, id), myAsyncBlock);
+    }, void, void(^asyncBlock)(void)));
+    
+    
+    __weak DaiSlicerTests *weakSelf = self;
+    [testObject asyncBlock: ^{
+        NSLog(@"===== Success");
+        [weakSelf.testExpectation fulfill];
+    }];
+    
+    [self waitForExpectationsWithTimeout:10.0f handler: ^(NSError * _Nullable error) {
+        if (error) {
+            XCTFail(@"Expectation Failed %s with error : %@", sel_getName(_cmd), error);
+        }
+    }];
 }
 
 @end
