@@ -10,13 +10,13 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-
 #define slice(target, selector, sliceBlock) \
 ({ \
+_Pragma("clang diagnostic push") \
+_Pragma("clang diagnostic ignored \"-Wundeclared-selector\"") \
     SEL sliceSelector = selector; \
     [DaiSlicer slice:target method:sliceSelector byBlock:sliceBlock]; \
+_Pragma("clang diagnostic pop") \
 })
 
 #define sliceBlock(buildYourBlock, methodReturnType, args...) \
@@ -35,8 +35,6 @@
     IMP imp = class_getMethodImplementation(aClass, selector); \
     imp; \
 })
-
-#pragma clang diagnostic pop
 
 @interface NSObject (DaiSlicer)
 
