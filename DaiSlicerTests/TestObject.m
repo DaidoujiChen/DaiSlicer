@@ -13,7 +13,7 @@
 #pragma mark - Class Method
 
 + (NSArray *)testMe:(NSArray *)items {
-    NSLog(@"items : %@", items);
+    NSLog(@"items : %@, %s", items, sel_getName(_cmd));
     return items;
 }
 

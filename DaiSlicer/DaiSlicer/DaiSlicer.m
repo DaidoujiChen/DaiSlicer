@@ -8,18 +8,6 @@
 
 #import "DaiSlicer.h"
 
-@implementation NSObject (DaiSlicer)
-
-+ (void)setSlicer:(id)slicer {
-    objc_setAssociatedObject(self, @selector(slicer), slicer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-+ (id)slicer {
-    return objc_getAssociatedObject(self, _cmd);
-}
-
-@end
-
 @implementation DaiSlicer
 
 #pragma mark - Private Class Method
@@ -27,12 +15,13 @@
 + (void)forClassMethod:(id)obj method:(SEL)selector byBlock:(id)block {
     Class metaClass = object_getClass(obj);
     
+    // 建立一個新的 selector 名稱
+    // 準備做 method swizzling
     Method originalMethod = class_getInstanceMethod(metaClass, selector);
     NSString *swizzledSelectorName = [NSString stringWithFormat:@"Dai_%p_%s", obj, sel_getName(selector)];
     SEL swizzledSelector = NSSelectorFromString(swizzledSelectorName);
     IMP blockIMP = imp_implementationWithBlock(block);
     BOOL didAddMethod = class_addMethod(metaClass, swizzledSelector, blockIMP, method_getTypeEncoding(originalMethod));
-    
     Method swizzledMethod = class_getInstanceMethod(metaClass, swizzledSelector);
     
     // 如果新增時失敗, 表示之前已經有這個 method
@@ -50,8 +39,22 @@
     method_exchangeImplementations(originalMethod, swizzledMethod);
 }
 
-+ (void)forInstanceMethod:(id)obj method:(SEL)selector byBlock:(id)block className:(NSString *)className {
++ (void)forInstanceMethod:(id)obj method:(SEL)selector byBlock:(id)block {
+    
+    // 找出我們要建立的 class 名稱
+    Class objClass = object_getClass(obj);
+    NSString *className = [NSString stringWithFormat:@"%s", class_getName(objClass)];
+    NSString *prefix = [NSString stringWithFormat:@"Dai_%p_", obj];
+    if (![className containsString:prefix]) {
+        className = [NSString stringWithFormat:@"%@%s", prefix, class_getName(objClass)];
+    }
+    
+    // 檢查這個 class 是否註冊過了
     Class aClass = NSClassFromString(className);
+    if (!aClass) {
+        aClass = objc_allocateClassPair(object_getClass(obj), className.UTF8String, 0);
+        objc_registerClassPair(aClass);
+    }
     
     // 如果 class 名稱不同 比方 Object 與 Dai_Object 才需要 isa swizzling
     // 而且兩個 class 的 size 必須相同才可以做這件事
@@ -61,7 +64,7 @@
     }
     
     IMP blockIMP = imp_implementationWithBlock(block);
-    Method targetMethod = class_getInstanceMethod(object_getClass(obj), selector);
+    Method targetMethod = class_getInstanceMethod(objClass, selector);
     const char *typeEncoding = method_getTypeEncoding(targetMethod);
     BOOL didAddMethod = class_addMethod(aClass, selector, blockIMP, typeEncoding);
     
@@ -79,32 +82,16 @@
 
 + (void)slice:(id)obj method:(SEL)selector byBlock:(id)block {
     
-    // 找出我們要建立的 class 名稱
-    Class objClass = object_getClass(obj);
-    NSString *className = [NSString stringWithFormat:@"%s", class_getName(objClass)];
-    NSString *prefix = [NSString stringWithFormat:@"Dai_%p_", obj];
-    if (![className containsString:prefix]) {
-        className = [NSString stringWithFormat:@"%@%s", prefix, class_getName(objClass)];
-    }
-    
-    // 檢查這個 class 是否註冊過了
-    Class aClass = NSClassFromString(className);
-    if (!aClass) {
-        aClass = objc_allocateClassPair(object_getClass(obj), className.UTF8String, 0);
-        objc_registerClassPair(aClass);
-    }
-    
     // 首先判斷要置換對象是否為 class
     if (object_isClass(obj)) {
         
         // Class
-        [obj setSlicer:NSClassFromString(className)];
         [self forClassMethod:obj method:selector byBlock:block];
     }
     else {
         
         // Instance
-        [self forInstanceMethod:obj method:selector byBlock:block className:className];
+        [self forInstanceMethod:obj method:selector byBlock:block];
     };
 }
 
