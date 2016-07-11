@@ -24,25 +24,30 @@
 
 #pragma mark - Private Class Method
 
-+ (void)forClassMethod:(id)obj method:(SEL)selector byBlock:(id)block className:(NSString *)className {
-    Class aClass = NSClassFromString(className);
-    Class metaClass = object_getClass(aClass);
-
-    if (![NSStringFromClass([obj class]) isEqualToString:className] && class_getInstanceSize(object_getClass([obj class])) == class_getInstanceSize(metaClass)) {
-        object_setClass(obj, metaClass);
-    }
++ (void)forClassMethod:(id)obj method:(SEL)selector byBlock:(id)block {
+    Class metaClass = object_getClass(obj);
     
+    Method originalMethod = class_getInstanceMethod(metaClass, selector);
+    NSString *swizzledSelectorName = [NSString stringWithFormat:@"Dai_%p_%s", obj, sel_getName(selector)];
+    SEL swizzledSelector = NSSelectorFromString(swizzledSelectorName);
     IMP blockIMP = imp_implementationWithBlock(block);
-    Method targetMethod = class_getInstanceMethod(aClass, selector);
-    const char *typeEncoding = method_getTypeEncoding(targetMethod);
-    BOOL didAddMethod = class_addMethod(metaClass, selector, blockIMP, typeEncoding);
+    BOOL didAddMethod = class_addMethod(metaClass, swizzledSelector, blockIMP, method_getTypeEncoding(originalMethod));
     
+    Method swizzledMethod = class_getInstanceMethod(metaClass, swizzledSelector);
+    
+    // 如果新增時失敗, 表示之前已經有這個 method
+    // 所以我們要先移除掉舊的
+    // 由於先前 exchange 過, 這邊要先 exchange 回來
+    // 然後殺掉舊的
     if (!didAddMethod) {
-        Method method = class_getInstanceMethod(metaClass, selector);;
+        method_exchangeImplementations(originalMethod, swizzledMethod);
+        Method method = class_getInstanceMethod(metaClass, swizzledSelector);
         IMP oldBlockIMP = method_getImplementation(method);
         method_setImplementation(method, blockIMP);
         imp_removeBlock(oldBlockIMP);
     }
+    
+    method_exchangeImplementations(originalMethod, swizzledMethod);
 }
 
 + (void)forInstanceMethod:(id)obj method:(SEL)selector byBlock:(id)block className:(NSString *)className {
@@ -94,7 +99,7 @@
         
         // Class
         [obj setSlicer:NSClassFromString(className)];
-        [self forClassMethod:obj method:selector byBlock:block className:className];
+        [self forClassMethod:obj method:selector byBlock:block];
     }
     else {
         

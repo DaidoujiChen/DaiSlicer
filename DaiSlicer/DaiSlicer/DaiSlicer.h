@@ -14,7 +14,10 @@
 ({ \
 _Pragma("clang diagnostic push") \
 _Pragma("clang diagnostic ignored \"-Wundeclared-selector\"") \
+_Pragma("clang diagnostic ignored \"-Wunused-variable\"") \
     SEL sliceSelector = selector; \
+    NSString *swizzledSelectorName = [NSString stringWithFormat:@"Dai_%p_%s", target, sel_getName(selector)]; \
+    SEL swizzledSelector = NSSelectorFromString(swizzledSelectorName); \
     [DaiSlicer slice:target method:sliceSelector byBlock:sliceBlock]; \
 _Pragma("clang diagnostic pop") \
 })
@@ -27,9 +30,24 @@ _Pragma("clang diagnostic pop") \
 })
 
 #define invoke(types, args...) \
-((types)usingIMP(obj, sliceSelector))(obj, sliceSelector, ## args);
+({ \
+    IMP imp; \
+    if (object_isClass(obj)) { \
+        imp = usingClassIMP(obj, swizzledSelector); \
+    } \
+    else { \
+        imp = usingInstanceIMP(obj, sliceSelector);\
+    } \
+    ((types)imp)(obj, swizzledSelector, ## args); \
+})
 
-#define usingIMP(target, selector) \
+#define usingClassIMP(target, selector) \
+({ \
+    IMP imp = class_getMethodImplementation(object_getClass(obj), selector); \
+    imp; \
+})
+
+#define usingInstanceIMP(target, selector) \
 ({ \
     Class aClass = target.superclass; \
     IMP imp = class_getMethodImplementation(aClass, selector); \

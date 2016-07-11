@@ -101,7 +101,12 @@
     slice([TestObject class], @selector(testMe:), sliceBlock({
         return invoke(NSArray *(*)(id, SEL, id), @[ @"world", @"ya" ]);
     }, NSArray *, NSArray *array));
-    NSAssert([[[TestObject slicer] testMe:@[]].firstObject isEqualToString:@"world"], @"不一樣 O口O\"");
+    NSAssert([[TestObject testMe:@[]].firstObject isEqualToString:@"world"], @"不一樣 O口O\"");
+    
+    slice([TestObject class], @selector(testMe:), sliceBlock({
+        return invoke(NSArray *(*)(id, SEL, id), @[ @"ya", @"world" ]);
+    }, NSArray *, NSArray *array));
+    NSAssert([[TestObject testMe:@[]].firstObject isEqualToString:@"ya"], @"不一樣 O口O\"");
 }
 
 - (void)testBlock {
